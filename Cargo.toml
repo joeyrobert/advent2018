@@ -4,3 +4,16 @@ version = "0.1.0"
 authors = ["joeyrobert <joey@joeyrobert.org>"]
 
 [dependencies]
+regex = "1.1.0"
+
+[[bin]]
+name = "advent_01"
+path = "src/advent_01.rs"
+
+[[bin]]
+name = "advent_02"
+path = "src/advent_02.rs"
+
+[[bin]]
+name = "advent_03"
+path = "src/advent_03.rs"
