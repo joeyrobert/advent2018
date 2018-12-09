@@ -5,6 +5,7 @@ authors = ["joeyrobert <joey@joeyrobert.org>"]
 
 [dependencies]
 regex = "1.1.0"
+skiplist = "0.2.10"
 
 [[bin]]
 name = "advent_01"
@@ -37,3 +38,7 @@ path = "src/advent_07.rs"
 [[bin]]
 name = "advent_08"
 path = "src/advent_08.rs"
+
+[[bin]]
+name = "advent_09"
+path = "src/advent_09.rs"
