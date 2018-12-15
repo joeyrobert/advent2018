@@ -4,6 +4,7 @@ version = "0.1.0"
 authors = ["joeyrobert <joey@joeyrobert.org>"]
 
 [dependencies]
+bit-vec = "0.5.0"
 regex = "1.1.0"
 skiplist = "0.2.10"
 
@@ -50,3 +51,7 @@ path = "src/advent_10.rs"
 [[bin]]
 name = "advent_11"
 path = "src/advent_11.rs"
+
+[[bin]]
+name = "advent_12"
+path = "src/advent_12.rs"
