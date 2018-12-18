@@ -2,8 +2,6 @@ use std::fs::File;
 use std::io::Read;
 use std::collections::HashMap;
 use std::collections::HashSet;
-use std::time::Duration;
-use std::thread;
 
 static MAX_DISTANCE: usize = 100000;
 
@@ -77,10 +75,11 @@ fn part_one() {
         let mut positions_copy = positions.clone();
         let mut positions_vec: Vec<_> = positions_copy.iter().collect();
         positions_vec.sort_by_key(|position| position.1);
-        let mut removed_enemies: HashSet<usize> = HashSet::new();
+        let mut removed_ids: HashSet<usize> = HashSet::new();
+        let mut broken_early = false;
 
         for (id, position) in &positions_vec {
-            if removed_enemies.contains(id) {
+            if removed_ids.contains(id) {
                 continue;
             }
 
@@ -90,15 +89,9 @@ fn part_one() {
                 occupied_spots.insert(*position);
             }
 
-            let mut unoccupied_spots: Vec<usize> = open_spots.iter().filter(|x| !occupied_spots.contains(x)).cloned().collect();
-
-            // println!("IS IT FILTER? {} = {}", open_spots.len(), unoccupied_spots.len());
+            let mut unoccupied_spots: Vec<usize> = open_spots.iter().filter(|x| !occupied_spots.contains(x) || x == position).cloned().collect();
             let (open_distances, _) = get_distances(&open_spots, **position);
             let (distances, previous) = get_distances(&unoccupied_spots, **position);
-
-
-
-            println!("unoccupied_spots: {:#?}", unoccupied_spots);
 
             // find enemies
             let is_elf = elves.contains(id);
@@ -108,17 +101,23 @@ fn part_one() {
                 .filter(|(enemy_id, _)| elves.contains(enemy_id) != is_elf)
                 .collect();
 
-            // println!("enemies: {:#?}", enemies);
+            if enemies.len() == 0 {
+                broken_early = true;
+                break;
+            }
 
             let mut enemies_in_range: Vec<_> = enemies
                 .iter()
-                .filter(|enemy| distances[enemy.1] == 1)
+                .filter(|enemy| match open_distances.get(enemy.1) {
+                    Some(distance) => *distance == 1,
+                    None => false
+                })
                 .collect();
 
             // sort in reading order
             enemies_in_range.sort_by_key(|(enemy_id, _)| enemy_id);
 
-            let new_position = if enemies_in_range.len() == 0 {
+            if enemies_in_range.len() == 0 {
                 // find squares adjacent to enemies
                 let mut enemy_neighbors: Vec<_> = enemies
                     .iter()
@@ -132,44 +131,41 @@ fn part_one() {
 
                     // move one towards the target
                     let (target_distances, target_previous) = get_distances(&unoccupied_spots, target);
-                    positions.insert(**id, target_previous[position]);
 
-                    println!("{:#?}", unoccupied_spots);
-                    println!("moving ({},{}) -> {} ({},{})", index_to_x(**position), index_to_y(**position), target_previous[position], index_to_x(target_previous[position]), index_to_y(target_previous[position]));
+                    if target_distances[position] < MAX_DISTANCE {
+                        let new_position = target_previous[position];
+                        positions.insert(**id, new_position);
 
-                    enemies_in_range = enemies
-                        .iter()
-                        .filter(|enemy| target_distances[&target_previous[position]] == 1)
-                        .collect();
-
-                    target_previous[position]
-                } else {
-                    **position
+                        let (new_open_distances, _) = get_distances(&open_spots, new_position);
+                        enemies_in_range = enemies
+                            .iter()
+                            .filter(|enemy| match new_open_distances.get(enemy.1) {
+                                Some(distance) => *distance == 1,
+                                None => false
+                            })
+                            .collect();
+                    }
                 }
-            } else {
-                **position
-            };
+            }
 
             if enemies_in_range.len() > 0 {
                 let (enemy_id, enemy_position) = enemies_in_range[0];
                 let next_hitpoint = hitpoints[enemy_id] - 3;
                 hitpoints.insert(**enemy_id, next_hitpoint);
 
-                // println!("{:#?}", hitpoints);
-
                 if hitpoints[enemy_id] <= 0 {
                     positions.remove(enemy_id);
                     hitpoints.remove(enemy_id);
-                    removed_enemies.insert(**enemy_id);
+                    removed_ids.insert(**enemy_id);
 
                     // println!("removing enemy {} ({})", enemy_id, elves.contains(enemy_id));
                 }
             }
         }
 
-
-        // println!("Incrementing step");
-        step += 1;
+        if !broken_early {
+            step += 1;
+        }
         let mut positions_copy = positions.clone();
         let mut num_elves = 0;
         let mut num_gnomes = 0;
@@ -181,17 +177,17 @@ fn part_one() {
             }
         }
 
+        draw(step as usize, &positions, &open_spots, &elves);
+        // println!("num elves: {}, num_gnomes: {}, hp: {:?}", num_elves, num_gnomes, hitpoints);
+
         if num_elves == 0 || num_gnomes == 0 {
             let mut total_hitpoints = 0;
             for (_, hp) in hitpoints {
                 total_hitpoints += hp;
             }
-            // println!("{} * {} = {}", step, total_hitpoints, step * total_hitpoints);
+            println!("{} * {} = {}", step, total_hitpoints, step * total_hitpoints);
             break;
         }
-
-        draw(step, &positions, &open_spots, &elves);
-        thread::sleep(Duration::from_millis(250))
     }
 }
 
@@ -203,8 +199,8 @@ fn draw(step: usize, positions: &HashMap<usize, usize>, open_spots: &Vec<usize>,
     // print!("{}[2J", 27 as char);
     println!("step: {}", step);
 
-    for y in 0..7 {
-        for x in 0..7 {
+    for y in 0..32 {
+        for x in 0..32 {
             let position = coords_to_index(x, y);
 
             if id_at_position.contains_key(&position) {
@@ -255,7 +251,6 @@ fn get_distances(unoccupied_spots: &Vec<usize>, source: usize) -> (HashMap<usize
     }
 
     (distances, previous)
-
 }
 
 fn main() {
