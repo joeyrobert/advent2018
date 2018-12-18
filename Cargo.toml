@@ -63,3 +63,7 @@ path = "src/advent_13.rs"
 [[bin]]
 name = "advent_14"
 path = "src/advent_14.rs"
+
+[[bin]]
+name = "advent_15"
+path = "src/advent_15.rs"
