@@ -72,7 +72,7 @@ fn part_one() {
     let mut step = 0;
 
     loop {
-        let mut positions_copy = positions.clone();
+        let positions_copy = positions.clone();
         let mut positions_vec: Vec<_> = positions_copy.iter().collect();
         positions_vec.sort_by_key(|position| position.1);
         let mut removed_ids: HashSet<usize> = HashSet::new();
@@ -91,7 +91,7 @@ fn part_one() {
 
             let mut unoccupied_spots: Vec<usize> = open_spots.iter().filter(|x| !occupied_spots.contains(x) || x == position).cloned().collect();
             let (open_distances, _) = get_distances(&open_spots, **position);
-            let (distances, previous) = get_distances(&unoccupied_spots, **position);
+            let (distances, _) = get_distances(&unoccupied_spots, **position);
 
             // find enemies
             let is_elf = elves.contains(id);
@@ -121,7 +121,7 @@ fn part_one() {
                 // find squares adjacent to enemies
                 let mut enemy_neighbors: Vec<_> = enemies
                     .iter()
-                    .flat_map(|(enemy_id, enemy_position)| get_neighbors(&unoccupied_spots, **enemy_position))
+                    .flat_map(|(_enemy_id, enemy_position)| get_neighbors(&unoccupied_spots, **enemy_position))
                     .collect();
 
                 if enemy_neighbors.len() > 0 {
@@ -149,7 +149,7 @@ fn part_one() {
             }
 
             if enemies_in_range.len() > 0 {
-                let (enemy_id, enemy_position) = enemies_in_range[0];
+                let (enemy_id, _enemy_position) = enemies_in_range[0];
                 let next_hitpoint = hitpoints[enemy_id] - 3;
                 hitpoints.insert(**enemy_id, next_hitpoint);
 
@@ -166,7 +166,7 @@ fn part_one() {
         if !broken_early {
             step += 1;
         }
-        let mut positions_copy = positions.clone();
+        let positions_copy = positions.clone();
         let mut num_elves = 0;
         let mut num_gnomes = 0;
         for (id, _) in positions_copy {
