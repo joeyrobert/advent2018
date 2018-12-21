@@ -159,14 +159,9 @@ fn part_two() {
         }
     }
 
-    // println!("num to opcodes: {:#?}", num_to_opcodes);
-    // println!("num to opcode: {:#?}", num_to_opcode);
-
     let mut registers: Vec<usize> = vec![0, 0, 0, 0];
     for inst in programs {
         let opcode = num_to_opcode[&inst[0]];
-        // println!("{} {}", inst[0], opcode);
-
         registers = step(&registers, opcode, inst[1], inst[2], inst[3]);
     }
 
